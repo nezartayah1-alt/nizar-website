@@ -695,7 +695,7 @@
 
           <div id="form-error" style="display:none;margin-bottom:1rem;font-family:'Tajawal',sans-serif;font-size:0.85rem;text-align:center;padding:0.625rem;color:#ef9f9f;background:rgba(239,159,159,0.08);border:1px solid rgba(239,159,159,0.2);border-radius:2px;"></div>
 
-          <button onclick="submitForm()" class="btn-gold" style="width:100%;padding:1.1rem;font-size:0.95rem;border-radius:2px;border:none;cursor:pointer;">
+          <button type="button" onclick="submitForm(event)" class="btn-gold" style="width:100%;padding:1.1rem;font-size:0.95rem;border-radius:2px;border:none;cursor:pointer;">
             اطلب استشارتك المجانية
           </button>
           <p style="font-family:'Tajawal',sans-serif;font-size:0.75rem;text-align:center;margin-top:1rem;color:rgba(232,228,220,0.3);">نعود إليك خلال 24 ساعة. بلا أي التزام.</p>
@@ -754,22 +754,44 @@
     }
 
     // Form submit
-    function submitForm(){
-      const name=document.getElementById('inp-name').value.trim();
-      const phone=document.getElementById('inp-phone').value.trim();
-      const errEl=document.getElementById('form-error');
-      errEl.style.display='none';
-      if(!name){showError('يرجى إدخال اسمك الكامل.');return;}
-      if(!phone){showError('يرجى إدخال رقم هاتفك.');return;}
-      if(!selectedInterest){showError('يرجى اختيار نوع الخدمة التي تهمك.');return;}
-      document.getElementById('form-state').style.display='none';
+    async function submitForm(e){
+  e.preventDefault();
+
+  const name = document.getElementById('inp-name').value.trim();
+  const phone = document.getElementById('inp-phone').value.trim();
+  const errEl = document.getElementById('form-error');
+
+  errEl.style.display = 'none';
+
+  if(!name){ showError('يرجى إدخال اسمك الكامل'); return; }
+  if(!phone){ showError('يرجى إدخال رقم هاتفك'); return; }
+
+  // 🔥 SEND TO FORMSPREE
+  const formData = {
+    name: name,
+    phone: phone
+  };
+
+  try {
+    const response = await fetch('https://formspree.io/f/mzdozzeb', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    });
+
+    if(response.ok){
+      document.getElementById('form-state').style.display="none";
       document.getElementById('success-state').style.display='flex';
+    } else {
+      showError('حدث خطأ، حاول مرة أخرى');
     }
-    function showError(msg){
-      const errEl=document.getElementById('form-error');
-      errEl.textContent=msg;
-      errEl.style.display='block';
-    }
+
+  } catch (error){
+    showError('فشل الإرسال، تحقق من الإنترنت');
+  }
+}
 
     // Auto popup trigger
     let popupShown=false;
